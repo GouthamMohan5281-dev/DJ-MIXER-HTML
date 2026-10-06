@@ -1,10 +1,9 @@
 <!doctype html>
-<!-- File name: dj app pro (v3.2max).html -->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DJ App Pro (v3.2max) — Full</title>
+  <title>DJ App Pro (EGSCRIPT) </title>
   <style>
     :root{
       --bg:#03040a; --panel:#0c1420; --muted:#93b4c6; --accent:#7be3ff; --accent2:#ff6bcb;
@@ -41,7 +40,7 @@
   </style>
 </head>
 <body>
-  <!-- Intro overlay with canvas and controls -->
+
   <div id="introOverlay" aria-hidden="false">
     <canvas id="introCanvas"></canvas>
     <div id="introTitle"></div>
@@ -50,18 +49,18 @@
     <div id="downloadIntroStatus" class="hidden">Recording...</div>
   </div>
 
-  <!-- Main app -->
+  
   <div class="app" id="appRoot" aria-hidden="true">
     <header>
       <div style="text-align:center">
         <div style="font-weight:900;font-size:20px">Digital Live dJ Work Station</div>
-        <div class="small">DJ App Pro (v3.2max) by Goutham Mohan</div>
+        <div class="small">DJ App Pro by Goutham Mohan EGS </div>
       </div>
     </header>
 
-    <!-- Deck A -->
+  
     <section class="panel deck" id="deckA">
-      <h3>Deck A</h3>
+      <h3>spot a</h3>
       <div class="controls">
         <label class="small">Load</label><input id="fileA" type="file" accept="audio/*,video/*">
         <button id="playA" class="primary">Play</button><button id="pauseA">Pause</button><button id="stopA">Stop</button>
@@ -71,7 +70,7 @@
       <div><label class="small">Echo</label><input id="echoA" type="range" min="0" max="1" step="0.01" value="0.08"></div>
       <div><label class="small">Speed (%)</label><input id="speedA" type="range" min="50" max="150" step="1" value="100"></div>
 
-      <!-- EQ sliders for Deck A -->
+  
       <div><label class="small">High (dB)</label><input id="highA" type="range" min="-12" max="12" step="0.5" value="0"></div>
       <div><label class="small">Mid (dB)</label><input id="midA" type="range" min="-12" max="12" step="0.5" value="0"></div>
       <div><label class="small">Low (dB)</label><input id="lowA" type="range" min="-12" max="12" step="0.5" value="0"></div>
@@ -82,9 +81,9 @@
       <div id="codesA" class="small muted">No instrument</div>
     </section>
 
-    <!-- Master -->
+
     <section class="panel" id="master">
-      <h3>Master Panel</h3>
+      <h3>Master Panel hr </h3>
       <div class="controls">
         <div style="flex:1"><label class="small">Crossfade</label><input id="crossfade" type="range" min="0" max="1" step="0.01" value="0.5"></div>
         <div style="width:150px"><label class="small">Master Vol</label><input id="masterVol" type="range" min="0" max="1" step="0.01" value="0.95"></div>
@@ -118,9 +117,9 @@
       </div>
     </section>
 
-    <!-- Deck B -->
+
     <section class="panel deck" id="deckB">
-      <h3>Deck B</h3>
+      <h3>spotB</h3>
       <div class="controls">
         <label class="small">Load</label><input id="fileB" type="file" accept="audio/*,video/*">
         <button id="playB" class="primary">Play</button><button id="pauseB">Pause</button><button id="stopB">Stop</button>
@@ -130,7 +129,7 @@
       <div><label class="small">Echo</label><input id="echoB" type="range" min="0" max="1" step="0.01" value="0.08"></div>
       <div><label class="small">Speed (%)</label><input id="speedB" type="range" min="50" max="150" step="1" value="100"></div>
 
-      <!-- EQ sliders for Deck B -->
+
       <div><label class="small">High (dB)</label><input id="highB" type="range" min="-12" max="12" step="0.5" value="0"></div>
       <div><label class="small">Mid (dB)</label><input id="midB" type="range" min="-12" max="12" step="0.5" value="0"></div>
       <div><label class="small">Low (dB)</label><input id="lowB" type="range" min="-12" max="12" step="0.5" value="0"></div>
@@ -147,25 +146,17 @@
     </div>
   </div>
 
-  <!-- Three.js CDN -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
   <script>
-  // ----------------------------------------------------------
-  // DJ App Pro (v3.2max) - Full single-file app
-  // - EQ High/Mid/Low per deck (working)
-  // - 6-pad sampler (default synth samples + upload)
-  // - Intro music (synth/beat) plays during intro overlay
-  // - All other original features preserved (4K export, 3D, fire, visualizers, record)
-  // ----------------------------------------------------------
 
-  // Utility
   const $ = id => document.getElementById(id);
 
-  // Create a single AudioContext for the whole app
+
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  // ---------- Intro module with synth intro music ----------
+
   (function introModule(){
     const overlay = $('introOverlay');
     const canvas = $('introCanvas');
@@ -260,14 +251,14 @@
       if(!revealDone) requestAnimationFrame(frame);
     }
 
-    // create a short intro music (thrilling synth + beat) using WebAudio
+    
     function playIntroMusic(){
       try{
-        // quick beat: impulse-ish kick using oscillator + transient
+    
         const now = audioCtx.currentTime;
-        // short rhythmic pattern
+      
         const pattern = [0, 0.35, 0.7, 1.1, 1.6];
-        // Kick-ish:
+       
         pattern.forEach((off, i) => {
           const when = now + off;
           const osc = audioCtx.createOscillator();
@@ -281,7 +272,7 @@
           osc.start(when); osc.stop(when + 0.4);
         });
 
-        // synth stab chords
+       
         const chordTimes = [0.05, 0.9, 1.8];
         chordTimes.forEach((off, idx) => {
           const base = 220 + idx*18;
@@ -298,7 +289,7 @@
           }
         });
 
-        // riser / whoosh
+    
         const now2 = audioCtx.currentTime + 0.3;
         const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
         o2.type = 'sawtooth'; o2.frequency.setValueAtTime(90, now2);
@@ -312,7 +303,7 @@
       }catch(e){ /* ignore if audio not allowed */ }
     }
 
-    // reveal: show HD title then remove overlay; play intro music
+
     function doReveal(col){
       hdTitle.classList.remove('hidden');
       hdTitle.style.left = '50%'; hdTitle.style.top = '48%';
@@ -321,7 +312,7 @@
       setTimeout(()=>{ hdTitle.style.opacity = '1'; hdTitle.style.transform = 'translate(-50%,-50%) scale(1.03)'; }, 40);
       setTimeout(()=>{ hdTitle.style.transform = 'translate(-50%,-50%) scale(1)'; }, 420);
 
-      // try play intro music; resume audioCtx on user gesture if needed
+     
       try{ if(audioCtx.state === 'suspended'){ audioCtx.resume().then(playIntroMusic); } else { playIntroMusic(); } }catch(e){}
 
       setTimeout(()=>{ overlay.style.transition = 'opacity 700ms ease'; overlay.style.opacity = 0; setTimeout(()=>{ overlay.remove(); revealDone = true; document.getElementById('appRoot').ariaHidden = false; document.getElementById('appRoot').removeAttribute('aria-hidden'); }, 760); }, 2200);
@@ -329,12 +320,12 @@
 
     frame();
 
-    // 4K export (kept functionally same but lighter for brevity)
+   
     downloadBtn.addEventListener('click', async ()=>{
       if(confirm('Record 4K intro? This will produce a large WebM and may use significant CPU. Continue?') === false) return;
       downloadBtn.disabled = true;
       statusEl.classList.remove('hidden'); statusEl.textContent = 'Preparing 4K record...';
-      // simplified: produce a short WebM by re-rendering canvas at 3840x2160 (same approach as before)
+      
       const outW = 3840, outH = 2160;
       const outCanvas = document.createElement('canvas'); outCanvas.width = outW; outCanvas.height = outH;
       const outCtx = outCanvas.getContext('2d');
@@ -354,7 +345,6 @@
         document.body.appendChild(a); statusEl.textContent='Recording finished — click download link'; downloadBtn.disabled=false;
       };
       mediaRecorder.start();
-      // generate simple frames
       let frameIndex = 0;
       const particles=[];
       function spawnLarge(){ const spawnCount = 6 + Math.floor(rand()*8); for(let i=0;i<spawnCount;i++){
@@ -382,19 +372,19 @@
 
   })();
 
-  // ---------- DJ core (audio nodes + EQ + sampler) ----------
+
   (function djCore(){
-    // Master chain
+
     const masterGain = audioCtx.createGain(); masterGain.gain.value = 0.95; masterGain.connect(audioCtx.destination);
     const recorderDestination = audioCtx.createMediaStreamDestination(); masterGain.connect(recorderDestination);
 
-    // audio elements for Deck A/B (HTMLMediaElements so users can load files)
+
     const audioElA = new Audio(); audioElA.crossOrigin='anonymous'; audioElA.preload='auto'; audioElA.loop=false;
     const audioElB = new Audio(); audioElB.crossOrigin='anonymous'; audioElB.preload='auto'; audioElB.loop=false;
     const srcA = audioCtx.createMediaElementSource(audioElA);
     const srcB = audioCtx.createMediaElementSource(audioElB);
 
-    // Deck builder with EQ + analyzer + delay chain
+
     function createDeck(){
       const low = audioCtx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 120; low.gain.value = 0;
       const mid = audioCtx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 1; mid.gain.value = 0;
@@ -405,7 +395,7 @@
       const delay = audioCtx.createDelay(); delay.delayTime.value = 0.08;
       const delayGain = audioCtx.createGain(); delayGain.gain.value = 0.2;
 
-      // routing: src -> low -> mid -> high -> preGain -> (analyser -> master) + (delay -> delayGain -> analyser)
+
       high.connect(preGain);
       preGain.connect(analyser);
       preGain.connect(delay);
@@ -419,15 +409,15 @@
     const deckA = createDeck();
     const deckB = createDeck();
 
-    // connect media elements into EQ chain
+
     srcA.connect(deckA.low); deckA.low.connect(deckA.mid); deckA.mid.connect(deckA.high);
     srcB.connect(deckB.low); deckB.low.connect(deckB.mid); deckB.mid.connect(deckB.high);
 
-    // initial per-deck levels
+
     deckA.preGain.gain.value = 0.9;
     deckB.preGain.gain.value = 0.9;
 
-    // DOM refs
+
     const fileA = $('fileA'), fileB = $('fileB'), instrumentFile = $('instrumentFile');
     const playA = $('playA'), pauseA = $('pauseA'), stopA = $('stopA');
     const playB = $('playB'), pauseB = $('pauseB'), stopB = $('stopB');
@@ -441,18 +431,17 @@
     const codesA = $('codesA'), codesB = $('codesB'), codesMaster = $('codesMaster');
     const recBtn = $('rec'), downloadLink = $('download');
 
-    // file loaders
+
     function urlForFile(file){ try{ return URL.createObjectURL(file); }catch(e){ return null; } }
     fileA.addEventListener('change', ()=>{ const f=fileA.files[0]; if(!f) return; audioElA.src = urlForFile(f); audioElA.load(); attachFileMeta(f, codesA); });
     fileB.addEventListener('change', ()=>{ const f=fileB.files[0]; if(!f) return; audioElB.src = urlForFile(f); audioElB.load(); attachFileMeta(f, codesB); });
 
-    // instrument upload and send → A/B
+
     let lastInstrumentFile = null;
     instrumentFile.addEventListener('change', async ()=>{ const f=instrumentFile.files[0]; if(!f) return; lastInstrumentFile = f; await extractToneFromFile(f, codesMaster); codesMaster.classList.remove('hidden'); });
     toA.addEventListener('click', ()=>{ if(!lastInstrumentFile) return alert('Upload an instrument file first'); audioElA.src = urlForFile(lastInstrumentFile); audioElA.load(); attachFileMeta(lastInstrumentFile, codesA); });
     toB.addEventListener('click', ()=>{ if(!lastInstrumentFile) return alert('Upload an instrument file first'); audioElB.src = urlForFile(lastInstrumentFile); audioElB.load(); attachFileMeta(lastInstrumentFile, codesB); });
 
-    // playback
     async function resumeAudio(){ if(audioCtx.state === 'suspended') await audioCtx.resume(); }
     playA.addEventListener('click', async ()=>{ await resumeAudio(); audioElA.play(); });
     pauseA.addEventListener('click', ()=> audioElA.pause());
@@ -462,19 +451,19 @@
     pauseB.addEventListener('click', ()=> audioElB.pause());
     stopB.addEventListener('click', ()=>{ audioElB.pause(); audioElB.currentTime = 0; });
 
-    // volumes (use preGain for per-deck volume; crossfade multiplies this)
+
     volA.addEventListener('input', ()=>{ deckA.preGain.gain.value = parseFloat(volA.value); updateCrossfade(); });
     volB.addEventListener('input', ()=>{ deckB.preGain.gain.value = parseFloat(volB.value); updateCrossfade(); });
 
-    // echo/delay
+
     echoA.addEventListener('input', ()=>{ deckA.delay.delayTime.value = parseFloat(echoA.value) * 0.4; deckA.delayGain.gain.value = parseFloat(echoA.value) * 0.7; });
     echoB.addEventListener('input', ()=>{ deckB.delay.delayTime.value = parseFloat(echoB.value) * 0.4; deckB.delayGain.gain.value = parseFloat(echoB.value) * 0.7; });
 
-    // speed
+
     speedA.addEventListener('input', ()=>{ audioElA.playbackRate = parseFloat(speedA.value)/100; });
     speedB.addEventListener('input', ()=>{ audioElB.playbackRate = parseFloat(speedB.value)/100; });
 
-    // crossfade function: compute simple cosine crossfade but preserve per-deck volume slider
+ 
     function updateCrossfade(){
       const x = parseFloat(crossfade.value);
       const gainA = Math.cos(x * 0.5 * Math.PI);
@@ -489,7 +478,6 @@
     masterVol.addEventListener('input', ()=> masterGain.gain.value = parseFloat(masterVol.value));
     masterEcho.addEventListener('input', ()=>{/* reserved if needed */});
 
-    // looping points (simple)
     let loopPointsA = {in:0,out:0}, loopPointsB = {in:0,out:0};
     $('loopInA').addEventListener('click', ()=>{ loopPointsA.in = audioElA.currentTime; alert('Deck A Loop In: '+loopPointsA.in.toFixed(2)+'s'); });
     $('loopOutA').addEventListener('click', ()=>{ loopPointsA.out = audioElA.currentTime || audioElA.duration; audioElA.loop = true; alert('Deck A Loop Out: '+loopPointsA.out.toFixed(2)+'s'); });
@@ -499,7 +487,7 @@
     $('loopOutB').addEventListener('click', ()=>{ loopPointsB.out = audioElB.currentTime || audioElB.duration; audioElB.loop = true; alert('Deck B Loop Out: '+loopPointsB.out.toFixed(2)+'s'); });
     $('loopToggleB').addEventListener('change', e=> audioElB.loop = e.target.checked);
 
-    // visualizers
+
     function drawAnalyzer(analyser, c, w, h){
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(data);
@@ -515,7 +503,7 @@
       try{
         drawAnalyzer(deckA.analyser, ctxA, visA.width, visA.height);
         drawAnalyzer(deckB.analyser, ctxB, visB.width, visB.height);
-        // master mix
+     
         const a = new Uint8Array(deckA.analyser.frequencyBinCount); deckA.analyser.getByteFrequencyData(a);
         const b = new Uint8Array(deckB.analyser.frequencyBinCount); deckB.analyser.getByteFrequencyData(b);
         ctxM.clearRect(0,0,visM.width,visM.height);
@@ -530,7 +518,7 @@
     }
     animate();
 
-    // RMS meters and CPU sim
+
     function computeRMSFromTimeDomain(analyser){
       const buf = new Uint8Array(analyser.fftSize);
       analyser.getByteTimeDomainData(buf);
@@ -550,7 +538,6 @@
     }
     meterLoop();
 
-    // Tone extraction (autocorrelation) - same as before
     function autoCorrelate(float32Array, sampleRate){
       const SIZE = float32Array.length;
       let rms=0;
@@ -616,21 +603,19 @@
       }
     });
 
-    // EQ slider bindings (dB to filter.gain)
-    // Deck A
+  
     $('highA').addEventListener('input', e=> deckA.high.gain.value = parseFloat(e.target.value));
     $('midA').addEventListener('input', e=> deckA.mid.gain.value = parseFloat(e.target.value));
     $('lowA').addEventListener('input', e=> deckA.low.gain.value = parseFloat(e.target.value));
-    // Deck B
+ 
     $('highB').addEventListener('input', e=> deckB.high.gain.value = parseFloat(e.target.value));
     $('midB').addEventListener('input', e=> deckB.mid.gain.value = parseFloat(e.target.value));
     $('lowB').addEventListener('input', e=> deckB.low.gain.value = parseFloat(e.target.value));
 
-    // ---------- Sampler implementation (6 pads) ----------
-    // Each pad has either a default synthesized sound or a loaded AudioBuffer
+
     const samplerSlots = new Array(6).fill(null); // will hold AudioBuffer or null
     const padFileLabels = [ $('padFile0'), $('padFile1'), $('padFile2'), $('padFile3'), $('padFile4'), $('padFile5') ];
-    // Default synth generator per pad (kick/snare/clap/hat/bass/fx)
+  
     function playDefaultPad(slot){
       const now = audioCtx.currentTime;
       if(slot === 0){ // kick
@@ -670,7 +655,7 @@
 
     function triggerPad(slot){
       if(samplerSlots[slot]){
-        // play buffer
+  
         const src = audioCtx.createBufferSource(); src.buffer = samplerSlots[slot];
         const gain = audioCtx.createGain(); gain.gain.value = 1.0;
         src.connect(gain); gain.connect(masterGain);
@@ -680,7 +665,7 @@
       }
     }
 
-    // attach click listeners to pads and file inputs
+
     for(let i=0;i<6;i++){
       const padEl = $('pad' + i);
       padEl.addEventListener('click', ()=>{ resumeAudio().then(()=> triggerPad(i)); });
@@ -698,14 +683,13 @@
       });
     }
 
-    // allow keyboard shortcuts 1-6 for pads
+
     window.addEventListener('keydown', (e)=>{
       if(e.key >= '1' && e.key <= '6'){ const idx = parseInt(e.key) - 1; resumeAudio().then(()=> triggerPad(idx)); }
     });
 
-    // ---------- Sampler done ----------
 
-    // ---------- three.js background (unchanged visual) ----------
+
     (function(){
       const container = $('three');
       const scene = new THREE.Scene();
@@ -727,7 +711,7 @@
       window.addEventListener('resize', ()=>{ renderer.setSize(container.clientWidth, container.clientHeight); camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); });
     })();
 
-    // ---------- fire canvas reactive to RMS ----------
+
     (function(){
       const canvas = $('fire'); const g = canvas.getContext('2d');
       function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
@@ -768,8 +752,7 @@
       loop();
     })();
 
-  })(); // end djCore
-
+  })(); 
   </script>
 </body>
 </html>
