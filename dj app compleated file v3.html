@@ -1,0 +1,775 @@
+<!doctype html>
+<!-- File name: dj app pro (v3.2max).html -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DJ App Pro (v3.2max) — Full</title>
+  <style>
+    :root{
+      --bg:#03040a; --panel:#0c1420; --muted:#93b4c6; --accent:#7be3ff; --accent2:#ff6bcb;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#eaf9ff;background:linear-gradient(180deg,#010107,#06111c)}
+    .app{display:grid;grid-template-columns:1fr 460px 1fr;grid-template-rows:120px 1fr 220px;gap:16px;padding:18px;height:100vh}
+    header{grid-column:1/-1;display:flex;align-items:center;justify-content:center}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;padding:12px}
+    .deck{display:flex;flex-direction:column;gap:10px}
+    .controls{display:flex;gap:8px;align-items:center}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#dff3ff;padding:8px;border-radius:8px;cursor:pointer}
+    .primary{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#041017;font-weight:700}
+    input[type=range]{width:100%}
+    .visualizer{height:120px;border-radius:10px;background:rgba(255,255,255,0.01);overflow:hidden}
+    .rms{height:8px;background:rgba(255,255,255,0.02);border-radius:6px;overflow:hidden}
+    .rms-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .three-container{height:260px;border-radius:8px;overflow:hidden}
+    .fire-canvas{width:100%;height:120px}
+    .small{font-size:13px;color:#9fb0c7}
+    .muted{color:#9fb0c7}
+    .hidden{display:none}
+    .sampler { display:flex; gap:8px; flex-wrap:wrap; }
+    .pad { padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.03); cursor:pointer; min-width:86px; text-align:center; }
+    .pad-file { display:block; font-size:11px; margin-top:6px; color:#9fb0c7; }
+    #introOverlay { position: fixed; inset:0; background: #020207; z-index:1000; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    #introCanvas { width:100%; height:100%; display:block; }
+    #introTitle { position:absolute; color:#ffffff; font-weight:900; font-size:48px; letter-spacing:2px; text-align:center; opacity:0; transform:scale(0.98); transition: transform 600ms, opacity 420ms; }
+    #hdTitle { position:absolute; color:#ffffff; font-weight:900; font-size:96px; letter-spacing:3px; text-align:center; transform:scale(0.9); opacity:0; transition: transform 700ms, opacity 420ms; pointer-events:none; }
+    #downloadIntroBtn { position: absolute; right: 18px; top: 18px; z-index: 1100; padding: 10px 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.06); color:#eaffff; cursor:pointer; }
+    #downloadIntroStatus { position:absolute; left:18px; top:18px; z-index:1100; color:#dfeffb; font-weight:700; }
+    @media (max-width:1100px) { .app { grid-template-columns:1fr; grid-template-rows:120px auto auto 240px } #introTitle{font-size:32px} #hdTitle{font-size:48px} }
+  </style>
+</head>
+<body>
+  <!-- Intro overlay with canvas and controls -->
+  <div id="introOverlay" aria-hidden="false">
+    <canvas id="introCanvas"></canvas>
+    <div id="introTitle"></div>
+    <div id="hdTitle" class="hidden">DJ App Pro (v3.2max)</div>
+    <button id="downloadIntroBtn">Download 4K Intro</button>
+    <div id="downloadIntroStatus" class="hidden">Recording...</div>
+  </div>
+
+  <!-- Main app -->
+  <div class="app" id="appRoot" aria-hidden="true">
+    <header>
+      <div style="text-align:center">
+        <div style="font-weight:900;font-size:20px">Digital Live dJ Work Station</div>
+        <div class="small">DJ App Pro (v3.2max) by Goutham Mohan</div>
+      </div>
+    </header>
+
+    <!-- Deck A -->
+    <section class="panel deck" id="deckA">
+      <h3>Deck A</h3>
+      <div class="controls">
+        <label class="small">Load</label><input id="fileA" type="file" accept="audio/*,video/*">
+        <button id="playA" class="primary">Play</button><button id="pauseA">Pause</button><button id="stopA">Stop</button>
+      </div>
+      <div class="controls"><button id="loopInA">Loop In</button><button id="loopOutA">Loop Out</button><label class="small">Loop</label><input id="loopToggleA" type="checkbox"></div>
+      <div><label class="small">Volume</label><input id="volA" type="range" min="0" max="1" step="0.01" value="0.9"></div>
+      <div><label class="small">Echo</label><input id="echoA" type="range" min="0" max="1" step="0.01" value="0.08"></div>
+      <div><label class="small">Speed (%)</label><input id="speedA" type="range" min="50" max="150" step="1" value="100"></div>
+
+      <!-- EQ sliders for Deck A -->
+      <div><label class="small">High (dB)</label><input id="highA" type="range" min="-12" max="12" step="0.5" value="0"></div>
+      <div><label class="small">Mid (dB)</label><input id="midA" type="range" min="-12" max="12" step="0.5" value="0"></div>
+      <div><label class="small">Low (dB)</label><input id="lowA" type="range" min="-12" max="12" step="0.5" value="0"></div>
+
+      <div class="visualizer"><canvas id="visA" width="600" height="120"></canvas></div>
+      <div class="rms"><div id="rmsa" class="rms-fill"></div></div>
+      <div class="small muted">Instrument / Tone codes</div>
+      <div id="codesA" class="small muted">No instrument</div>
+    </section>
+
+    <!-- Master -->
+    <section class="panel" id="master">
+      <h3>Master Panel</h3>
+      <div class="controls">
+        <div style="flex:1"><label class="small">Crossfade</label><input id="crossfade" type="range" min="0" max="1" step="0.01" value="0.5"></div>
+        <div style="width:150px"><label class="small">Master Vol</label><input id="masterVol" type="range" min="0" max="1" step="0.01" value="0.95"></div>
+      </div>
+      <div class="controls">
+        <div style="flex:1"><label class="small">Instrument (upload mp4/audio)</label><input id="instrumentFile" type="file" accept="audio/*,video/*"></div>
+        <div style="width:150px"><label class="small">Master Echo</label><input id="masterEcho" type="range" min="0" max="1" step="0.01" value="0.06"></div>
+      </div>
+
+      <div class="controls">
+        <div style="flex:1"><label class="small">CPU Load</label><div class="rms"><div id="cpu" class="rms-fill"></div></div></div>
+        <div style="width:420px;display:flex;gap:8px;align-items:center;justify-content:flex-end">
+          <button id="toA">Send → A</button><button id="toB">Send → B</button><button id="rec">Record</button><a id="download" class="small muted" download="mix.webm">Download</a>
+        </div>
+      </div>
+
+      <div><label class="small">Master Visualizer</label><div class="visualizer"><canvas id="visM" width="600" height="120"></canvas></div></div>
+      <div id="codesMaster" class="small muted hidden"></div>
+
+      <hr style="opacity:0.06" />
+      <div>
+        <div class="small">Sampler (6 pads) — default synthesized sounds. Upload to replace.</div>
+        <div class="sampler" id="sampler">
+          <div class="pad" data-pad="0" id="pad0">Kick <span class="pad-file" id="padFile0">default</span><input type="file" accept="audio/*" data-slot="0" class="padUploader" /></div>
+          <div class="pad" data-pad="1" id="pad1">Snare <span class="pad-file" id="padFile1">default</span><input type="file" accept="audio/*" data-slot="1" class="padUploader" /></div>
+          <div class="pad" data-pad="2" id="pad2">Clap <span class="pad-file" id="padFile2">default</span><input type="file" accept="audio/*" data-slot="2" class="padUploader" /></div>
+          <div class="pad" data-pad="3" id="pad3">Hi-Hat <span class="pad-file" id="padFile3">default</span><input type="file" accept="audio/*" data-slot="3" class="padUploader" /></div>
+          <div class="pad" data-pad="4" id="pad4">Bass <span class="pad-file" id="padFile4">default</span><input type="file" accept="audio/*" data-slot="4" class="padUploader" /></div>
+          <div class="pad" data-pad="5" id="pad5">FX <span class="pad-file" id="padFile5">default</span><input type="file" accept="audio/*" data-slot="5" class="padUploader" /></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deck B -->
+    <section class="panel deck" id="deckB">
+      <h3>Deck B</h3>
+      <div class="controls">
+        <label class="small">Load</label><input id="fileB" type="file" accept="audio/*,video/*">
+        <button id="playB" class="primary">Play</button><button id="pauseB">Pause</button><button id="stopB">Stop</button>
+      </div>
+      <div class="controls"><button id="loopInB">Loop In</button><button id="loopOutB">Loop Out</button><label class="small">Loop</label><input id="loopToggleB" type="checkbox"></div>
+      <div><label class="small">Volume</label><input id="volB" type="range" min="0" max="1" step="0.01" value="0.9"></div>
+      <div><label class="small">Echo</label><input id="echoB" type="range" min="0" max="1" step="0.01" value="0.08"></div>
+      <div><label class="small">Speed (%)</label><input id="speedB" type="range" min="50" max="150" step="1" value="100"></div>
+
+      <!-- EQ sliders for Deck B -->
+      <div><label class="small">High (dB)</label><input id="highB" type="range" min="-12" max="12" step="0.5" value="0"></div>
+      <div><label class="small">Mid (dB)</label><input id="midB" type="range" min="-12" max="12" step="0.5" value="0"></div>
+      <div><label class="small">Low (dB)</label><input id="lowB" type="range" min="-12" max="12" step="0.5" value="0"></div>
+
+      <div class="visualizer"><canvas id="visB" width="600" height="120"></canvas></div>
+      <div class="rms"><div id="rmsb" class="rms-fill"></div></div>
+      <div class="small muted">Instrument / Tone codes</div>
+      <div id="codesB" class="small muted">No instrument</div>
+    </section>
+
+    <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:center">
+      <div class="three-container" id="three"></div>
+      <div style="flex:1;min-width:360px"><canvas id="fire" class="fire-canvas"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+
+  <script>
+  // ----------------------------------------------------------
+  // DJ App Pro (v3.2max) - Full single-file app
+  // - EQ High/Mid/Low per deck (working)
+  // - 6-pad sampler (default synth samples + upload)
+  // - Intro music (synth/beat) plays during intro overlay
+  // - All other original features preserved (4K export, 3D, fire, visualizers, record)
+  // ----------------------------------------------------------
+
+  // Utility
+  const $ = id => document.getElementById(id);
+
+  // Create a single AudioContext for the whole app
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // ---------- Intro module with synth intro music ----------
+  (function introModule(){
+    const overlay = $('introOverlay');
+    const canvas = $('introCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const title = $('introTitle');
+    const hdTitle = $('hdTitle');
+    const downloadBtn = $('downloadIntroBtn');
+    const statusEl = $('downloadIntroStatus');
+
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+    window.addEventListener('resize', ()=>{ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
+
+    const leftParticles = [], rightParticles = [];
+    let t = 0;
+    let collisionHappened = false;
+    let revealDone = false;
+
+    function spawn(side){
+      const count = 6 + Math.floor(Math.random()*6);
+      for(let i=0;i<count;i++){
+        const p = {
+          x: side==='left' ? -30 - Math.random()*40 : W + 30 + Math.random()*40,
+          y: H*0.5 + (Math.random()-0.5)*H*0.35,
+          vx: (side==='left' ? 1 : -1) * (2 + Math.random()*6),
+          vy: (Math.random()-0.5)*2,
+          size: 20 + Math.random()*60,
+          hue: side==='left' ? 200 + Math.random()*40 : 320 + Math.random()*30,
+          life: 80 + Math.random()*60,
+          side
+        };
+        if(side==='left') leftParticles.push(p); else rightParticles.push(p);
+      }
+    }
+
+    spawn('left'); spawn('right');
+
+    function drawParticles(list){
+      for(let i=list.length-1;i>=0;i--){
+        const p = list[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        const a = Math.max(0, Math.min(1, p.life / 120));
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+        g.addColorStop(0, `hsla(${p.hue},95%,60%,${0.14 * a})`);
+        g.addColorStop(0.6, `hsla(${p.hue},90%,50%,${0.08 * a})`);
+        g.addColorStop(1, `rgba(0,0,0,0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+        if(p.life <= 0 || p.x < -200 || p.x > W + 200) list.splice(i,1);
+      }
+    }
+
+    function detectCollision(){
+      for(const L of leftParticles){
+        for(const R of rightParticles){
+          const dx = L.x - R.x;
+          const dy = L.y - R.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          const threshold = (L.size + R.size) * 0.5;
+          if(dist < threshold + 6) return {L,R,dist};
+        }
+      }
+      return null;
+    }
+
+    function frame(){
+      ctx.clearRect(0,0,W,H);
+      const bgg = ctx.createLinearGradient(0,0,W,0);
+      bgg.addColorStop(0, 'rgba(7,10,20,0.15)');
+      bgg.addColorStop(1, 'rgba(10,6,20,0.18)');
+      ctx.fillStyle = bgg; ctx.fillRect(0,0,W,H);
+
+      if(t % 10 === 0){ spawn('left'); spawn('right'); }
+      drawParticles(leftParticles); drawParticles(rightParticles);
+
+      const sampleCollision = detectCollision();
+      if(sampleCollision && !collisionHappened){
+        collisionHappened = true;
+        doReveal(sampleCollision);
+      }
+
+      if(!collisionHappened){
+        title.style.opacity = Math.min(1, (Math.min(W, H) / 8 + Math.min(150, leftParticles.length + rightParticles.length)) / 40);
+        title.style.transform = `scale(${0.98 + Math.sin(t/60)*0.002})`;
+      }
+
+      t++;
+      if(!revealDone) requestAnimationFrame(frame);
+    }
+
+    // create a short intro music (thrilling synth + beat) using WebAudio
+    function playIntroMusic(){
+      try{
+        // quick beat: impulse-ish kick using oscillator + transient
+        const now = audioCtx.currentTime;
+        // short rhythmic pattern
+        const pattern = [0, 0.35, 0.7, 1.1, 1.6];
+        // Kick-ish:
+        pattern.forEach((off, i) => {
+          const when = now + off;
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(120 - i*6, when);
+          g.gain.setValueAtTime(0.0001, when);
+          g.gain.exponentialRampToValueAtTime(0.6, when + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.001, when + 0.35);
+          osc.connect(g); g.connect(audioCtx.destination);
+          osc.start(when); osc.stop(when + 0.4);
+        });
+
+        // synth stab chords
+        const chordTimes = [0.05, 0.9, 1.8];
+        chordTimes.forEach((off, idx) => {
+          const base = 220 + idx*18;
+          for(let i=0;i<3;i++){
+            const o = audioCtx.createOscillator(); const ga = audioCtx.createGain();
+            o.type = i===1?'sawtooth':'triangle';
+            o.frequency.value = base * [1,1.25,1.5][i];
+            ga.gain.value = 0.0;
+            o.connect(ga); ga.connect(audioCtx.destination);
+            ga.gain.setValueAtTime(0.0001, audioCtx.currentTime + off);
+            ga.gain.exponentialRampToValueAtTime(0.18 - idx*0.03, audioCtx.currentTime + off + 0.02);
+            ga.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + off + 0.9);
+            o.start(audioCtx.currentTime + off); o.stop(audioCtx.currentTime + off + 1.0);
+          }
+        });
+
+        // riser / whoosh
+        const now2 = audioCtx.currentTime + 0.3;
+        const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
+        o2.type = 'sawtooth'; o2.frequency.setValueAtTime(90, now2);
+        o2.frequency.exponentialRampToValueAtTime(1200, now2 + 2.0);
+        g2.gain.setValueAtTime(0.001, now2);
+        g2.gain.exponentialRampToValueAtTime(0.25, now2 + 1.2);
+        g2.gain.exponentialRampToValueAtTime(0.0001, now2 + 2.2);
+        o2.connect(g2); g2.connect(audioCtx.destination);
+        o2.start(now2); o2.stop(now2 + 2.4);
+
+      }catch(e){ /* ignore if audio not allowed */ }
+    }
+
+    // reveal: show HD title then remove overlay; play intro music
+    function doReveal(col){
+      hdTitle.classList.remove('hidden');
+      hdTitle.style.left = '50%'; hdTitle.style.top = '48%';
+      hdTitle.style.transform = 'translate(-50%,-50%) scale(0.9)';
+      hdTitle.style.opacity = '0';
+      setTimeout(()=>{ hdTitle.style.opacity = '1'; hdTitle.style.transform = 'translate(-50%,-50%) scale(1.03)'; }, 40);
+      setTimeout(()=>{ hdTitle.style.transform = 'translate(-50%,-50%) scale(1)'; }, 420);
+
+      // try play intro music; resume audioCtx on user gesture if needed
+      try{ if(audioCtx.state === 'suspended'){ audioCtx.resume().then(playIntroMusic); } else { playIntroMusic(); } }catch(e){}
+
+      setTimeout(()=>{ overlay.style.transition = 'opacity 700ms ease'; overlay.style.opacity = 0; setTimeout(()=>{ overlay.remove(); revealDone = true; document.getElementById('appRoot').ariaHidden = false; document.getElementById('appRoot').removeAttribute('aria-hidden'); }, 760); }, 2200);
+    }
+
+    frame();
+
+    // 4K export (kept functionally same but lighter for brevity)
+    downloadBtn.addEventListener('click', async ()=>{
+      if(confirm('Record 4K intro? This will produce a large WebM and may use significant CPU. Continue?') === false) return;
+      downloadBtn.disabled = true;
+      statusEl.classList.remove('hidden'); statusEl.textContent = 'Preparing 4K record...';
+      // simplified: produce a short WebM by re-rendering canvas at 3840x2160 (same approach as before)
+      const outW = 3840, outH = 2160;
+      const outCanvas = document.createElement('canvas'); outCanvas.width = outW; outCanvas.height = outH;
+      const outCtx = outCanvas.getContext('2d');
+      const durationSec = 6; const fps = 30; const totalFrames = durationSec * fps;
+      const randSeed = Math.floor(Math.random()*1e9);
+      function generateSequence(seed){ let s=seed||1; return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+      const rand = generateSequence(randSeed);
+      const stream = outCanvas.captureStream(fps);
+      let mediaRecorder;
+      try{ mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' }); }catch(e){ try{ mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp8' }); }catch(e){ mediaRecorder = new MediaRecorder(stream); } }
+      const chunks=[];
+      mediaRecorder.ondataavailable = ev=>{ if(ev.data && ev.data.size) chunks.push(ev.data); };
+      mediaRecorder.onstop = ()=> {
+        const blob = new Blob(chunks, {type:'video/webm'}); const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'intro-4k.webm'; a.textContent = 'Download 4K Intro';
+        a.style.position='fixed'; a.style.left='18px'; a.style.top='48px'; a.style.zIndex=1200; a.style.background='rgba(255,255,255,0.06)'; a.style.padding='8px 12px'; a.style.borderRadius='8px'; a.style.color='#eaffff';
+        document.body.appendChild(a); statusEl.textContent='Recording finished — click download link'; downloadBtn.disabled=false;
+      };
+      mediaRecorder.start();
+      // generate simple frames
+      let frameIndex = 0;
+      const particles=[];
+      function spawnLarge(){ const spawnCount = 6 + Math.floor(rand()*8); for(let i=0;i<spawnCount;i++){
+        particles.push({ x:-50 - rand()*120, y:outH*0.5 + (rand()-0.5)*outH*0.35, vx:(2+rand()*6), vy:(rand()-0.5)*2, size:30+rand()*160, hue:200+rand()*40, life:90+Math.floor(rand()*80) });
+        particles.push({ x:outW + 50 + rand()*120, y:outH*0.5 + (rand()-0.5)*outH*0.35, vx:- (2+rand()*6), vy:(rand()-0.5)*2, size:30+rand()*140, hue:320+rand()*30, life:90+Math.floor(rand()*80) });
+      } }
+      spawnLarge();
+      function renderFrame(){
+        outCtx.fillStyle='rgba(3,4,8,1)'; outCtx.fillRect(0,0,outW,outH);
+        const g = outCtx.createLinearGradient(0,0,outW,0); g.addColorStop(0,'rgba(123,227,255,0.06)'); g.addColorStop(1,'rgba(255,107,203,0.06)');
+        outCtx.fillStyle=g; outCtx.fillRect(0,0,outW,outH);
+        for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.x += p.vx*(outW/W)*0.55; p.y += p.vy*(outH/H)*0.55; p.life--; const a=Math.max(0,Math.min(1,p.life/180)); const grd=outCtx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size); grd.addColorStop(0,`hsla(${p.hue},95%,60%,${0.15*a})`); grd.addColorStop(0.6,`hsla(${p.hue},90%,50%,${0.08*a})`); grd.addColorStop(1,'rgba(0,0,0,0)'); outCtx.fillStyle=grd; outCtx.beginPath(); outCtx.arc(p.x,p.y,p.size,0,Math.PI*2); outCtx.fill(); if(p.life<=0||p.x < -300 || p.x > outW + 300) particles.splice(i,1); }
+        if(frameIndex % 6 === 0 && (rand() < 0.5)) spawnLarge();
+        let overlap = false; for(const a of particles){ if(a.x > outW*0.45 && a.x < outW*0.55) { overlap = true; break; } }
+        if(overlap || frameIndex > totalFrames - 60){
+          outCtx.font = '200px Inter, Helvetica, Arial, sans-serif'; outCtx.textAlign = 'center'; outCtx.textBaseline = 'middle';
+          outCtx.fillStyle = 'rgba(255,255,255,0.95)'; outCtx.shadowColor = 'rgba(123,227,255,0.12)'; outCtx.shadowBlur = 60; outCtx.fillText('DJ App Pro (v3.2max)', outW/2, outH/2); outCtx.shadowBlur = 0;
+        }
+        frameIndex++;
+        if(frameIndex < totalFrames) setTimeout(renderFrame, 1000 / fps);
+        else setTimeout(()=> mediaRecorder.stop(), 400);
+      }
+      renderFrame();
+    });
+
+  })();
+
+  // ---------- DJ core (audio nodes + EQ + sampler) ----------
+  (function djCore(){
+    // Master chain
+    const masterGain = audioCtx.createGain(); masterGain.gain.value = 0.95; masterGain.connect(audioCtx.destination);
+    const recorderDestination = audioCtx.createMediaStreamDestination(); masterGain.connect(recorderDestination);
+
+    // audio elements for Deck A/B (HTMLMediaElements so users can load files)
+    const audioElA = new Audio(); audioElA.crossOrigin='anonymous'; audioElA.preload='auto'; audioElA.loop=false;
+    const audioElB = new Audio(); audioElB.crossOrigin='anonymous'; audioElB.preload='auto'; audioElB.loop=false;
+    const srcA = audioCtx.createMediaElementSource(audioElA);
+    const srcB = audioCtx.createMediaElementSource(audioElB);
+
+    // Deck builder with EQ + analyzer + delay chain
+    function createDeck(){
+      const low = audioCtx.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 120; low.gain.value = 0;
+      const mid = audioCtx.createBiquadFilter(); mid.type = 'peaking'; mid.frequency.value = 1000; mid.Q.value = 1; mid.gain.value = 0;
+      const high = audioCtx.createBiquadFilter(); high.type = 'highshelf'; high.frequency.value = 5000; high.gain.value = 0;
+
+      const preGain = audioCtx.createGain(); preGain.gain.value = 1.0; // used for crossfade * volume
+      const analyser = audioCtx.createAnalyser(); analyser.fftSize = 2048;
+      const delay = audioCtx.createDelay(); delay.delayTime.value = 0.08;
+      const delayGain = audioCtx.createGain(); delayGain.gain.value = 0.2;
+
+      // routing: src -> low -> mid -> high -> preGain -> (analyser -> master) + (delay -> delayGain -> analyser)
+      high.connect(preGain);
+      preGain.connect(analyser);
+      preGain.connect(delay);
+      delay.connect(delayGain);
+      delayGain.connect(analyser);
+      analyser.connect(masterGain);
+
+      return { low, mid, high, preGain, analyser, delay, delayGain };
+    }
+
+    const deckA = createDeck();
+    const deckB = createDeck();
+
+    // connect media elements into EQ chain
+    srcA.connect(deckA.low); deckA.low.connect(deckA.mid); deckA.mid.connect(deckA.high);
+    srcB.connect(deckB.low); deckB.low.connect(deckB.mid); deckB.mid.connect(deckB.high);
+
+    // initial per-deck levels
+    deckA.preGain.gain.value = 0.9;
+    deckB.preGain.gain.value = 0.9;
+
+    // DOM refs
+    const fileA = $('fileA'), fileB = $('fileB'), instrumentFile = $('instrumentFile');
+    const playA = $('playA'), pauseA = $('pauseA'), stopA = $('stopA');
+    const playB = $('playB'), pauseB = $('pauseB'), stopB = $('stopB');
+    const volA = $('volA'), volB = $('volB'), echoA = $('echoA'), echoB = $('echoB');
+    const speedA = $('speedA'), speedB = $('speedB');
+    const crossfade = $('crossfade'), masterVol = $('masterVol'), masterEcho = $('masterEcho');
+    const toA = $('toA'), toB = $('toB');
+    const visA = $('visA'), visB = $('visB'), visM = $('visM');
+    const ctxA = visA.getContext('2d'), ctxB = visB.getContext('2d'), ctxM = visM.getContext('2d');
+    const rmsa = $('rmsa'), rmsb = $('rmsb'), cpu = $('cpu');
+    const codesA = $('codesA'), codesB = $('codesB'), codesMaster = $('codesMaster');
+    const recBtn = $('rec'), downloadLink = $('download');
+
+    // file loaders
+    function urlForFile(file){ try{ return URL.createObjectURL(file); }catch(e){ return null; } }
+    fileA.addEventListener('change', ()=>{ const f=fileA.files[0]; if(!f) return; audioElA.src = urlForFile(f); audioElA.load(); attachFileMeta(f, codesA); });
+    fileB.addEventListener('change', ()=>{ const f=fileB.files[0]; if(!f) return; audioElB.src = urlForFile(f); audioElB.load(); attachFileMeta(f, codesB); });
+
+    // instrument upload and send → A/B
+    let lastInstrumentFile = null;
+    instrumentFile.addEventListener('change', async ()=>{ const f=instrumentFile.files[0]; if(!f) return; lastInstrumentFile = f; await extractToneFromFile(f, codesMaster); codesMaster.classList.remove('hidden'); });
+    toA.addEventListener('click', ()=>{ if(!lastInstrumentFile) return alert('Upload an instrument file first'); audioElA.src = urlForFile(lastInstrumentFile); audioElA.load(); attachFileMeta(lastInstrumentFile, codesA); });
+    toB.addEventListener('click', ()=>{ if(!lastInstrumentFile) return alert('Upload an instrument file first'); audioElB.src = urlForFile(lastInstrumentFile); audioElB.load(); attachFileMeta(lastInstrumentFile, codesB); });
+
+    // playback
+    async function resumeAudio(){ if(audioCtx.state === 'suspended') await audioCtx.resume(); }
+    playA.addEventListener('click', async ()=>{ await resumeAudio(); audioElA.play(); });
+    pauseA.addEventListener('click', ()=> audioElA.pause());
+    stopA.addEventListener('click', ()=>{ audioElA.pause(); audioElA.currentTime = 0; });
+
+    playB.addEventListener('click', async ()=>{ await resumeAudio(); audioElB.play(); });
+    pauseB.addEventListener('click', ()=> audioElB.pause());
+    stopB.addEventListener('click', ()=>{ audioElB.pause(); audioElB.currentTime = 0; });
+
+    // volumes (use preGain for per-deck volume; crossfade multiplies this)
+    volA.addEventListener('input', ()=>{ deckA.preGain.gain.value = parseFloat(volA.value); updateCrossfade(); });
+    volB.addEventListener('input', ()=>{ deckB.preGain.gain.value = parseFloat(volB.value); updateCrossfade(); });
+
+    // echo/delay
+    echoA.addEventListener('input', ()=>{ deckA.delay.delayTime.value = parseFloat(echoA.value) * 0.4; deckA.delayGain.gain.value = parseFloat(echoA.value) * 0.7; });
+    echoB.addEventListener('input', ()=>{ deckB.delay.delayTime.value = parseFloat(echoB.value) * 0.4; deckB.delayGain.gain.value = parseFloat(echoB.value) * 0.7; });
+
+    // speed
+    speedA.addEventListener('input', ()=>{ audioElA.playbackRate = parseFloat(speedA.value)/100; });
+    speedB.addEventListener('input', ()=>{ audioElB.playbackRate = parseFloat(speedB.value)/100; });
+
+    // crossfade function: compute simple cosine crossfade but preserve per-deck volume slider
+    function updateCrossfade(){
+      const x = parseFloat(crossfade.value);
+      const gainA = Math.cos(x * 0.5 * Math.PI);
+      const gainB = Math.cos((1 - x) * 0.5 * Math.PI);
+      // combine with user volume slider
+      deckA.preGain.gain.value = gainA * parseFloat(volA.value);
+      deckB.preGain.gain.value = gainB * parseFloat(volB.value);
+    }
+    crossfade.addEventListener('input', updateCrossfade);
+    updateCrossfade();
+
+    masterVol.addEventListener('input', ()=> masterGain.gain.value = parseFloat(masterVol.value));
+    masterEcho.addEventListener('input', ()=>{/* reserved if needed */});
+
+    // looping points (simple)
+    let loopPointsA = {in:0,out:0}, loopPointsB = {in:0,out:0};
+    $('loopInA').addEventListener('click', ()=>{ loopPointsA.in = audioElA.currentTime; alert('Deck A Loop In: '+loopPointsA.in.toFixed(2)+'s'); });
+    $('loopOutA').addEventListener('click', ()=>{ loopPointsA.out = audioElA.currentTime || audioElA.duration; audioElA.loop = true; alert('Deck A Loop Out: '+loopPointsA.out.toFixed(2)+'s'); });
+    $('loopToggleA').addEventListener('change', e=> audioElA.loop = e.target.checked);
+
+    $('loopInB').addEventListener('click', ()=>{ loopPointsB.in = audioElB.currentTime; alert('Deck B Loop In: '+loopPointsB.in.toFixed(2)+'s'); });
+    $('loopOutB').addEventListener('click', ()=>{ loopPointsB.out = audioElB.currentTime || audioElB.duration; audioElB.loop = true; alert('Deck B Loop Out: '+loopPointsB.out.toFixed(2)+'s'); });
+    $('loopToggleB').addEventListener('change', e=> audioElB.loop = e.target.checked);
+
+    // visualizers
+    function drawAnalyzer(analyser, c, w, h){
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      c.clearRect(0,0,w,h);
+      const bars = 60; const step = Math.floor(data.length / bars); const barW = w/bars;
+      for(let i=0;i<bars;i++){
+        const v = data[i*step]/255; const hh = v*h;
+        c.fillStyle = `rgba(123,227,255,${0.25 + v*0.6})`;
+        c.fillRect(i*barW, h - hh, barW*0.8, hh);
+      }
+    }
+    function animate(){ requestAnimationFrame(animate);
+      try{
+        drawAnalyzer(deckA.analyser, ctxA, visA.width, visA.height);
+        drawAnalyzer(deckB.analyser, ctxB, visB.width, visB.height);
+        // master mix
+        const a = new Uint8Array(deckA.analyser.frequencyBinCount); deckA.analyser.getByteFrequencyData(a);
+        const b = new Uint8Array(deckB.analyser.frequencyBinCount); deckB.analyser.getByteFrequencyData(b);
+        ctxM.clearRect(0,0,visM.width,visM.height);
+        const bars=60, barW=visM.width/bars;
+        for(let i=0;i<bars;i++){
+          const v = Math.max(a[i]||0, b[i]||0)/255;
+          const hh = v * visM.height;
+          ctxM.fillStyle = `rgba(255,107,203,${0.25+v*0.6})`;
+          ctxM.fillRect(i*barW, visM.height - hh, barW*0.8, hh);
+        }
+      }catch(e){}
+    }
+    animate();
+
+    // RMS meters and CPU sim
+    function computeRMSFromTimeDomain(analyser){
+      const buf = new Uint8Array(analyser.fftSize);
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0;
+      for(let i=0;i<buf.length;i++){ const v = (buf[i]-128)/128; sum += v*v; }
+      return Math.sqrt(sum / buf.length);
+    }
+    function meterLoop(){ requestAnimationFrame(meterLoop);
+      try{
+        const rA = computeRMSFromTimeDomain(deckA.analyser);
+        const rB = computeRMSFromTimeDomain(deckB.analyser);
+        rmsa.style.width = Math.min(100, Math.round(rA*300)) + '%';
+        rmsb.style.width = Math.min(100, Math.round(rB*300)) + '%';
+        const cpuVal = Math.min(100, Math.round((rA + rB) * 50 + (audioElA.paused?0:20) + (audioElB.paused?0:20) + Math.random()*10));
+        cpu.style.width = cpuVal + '%';
+      }catch(e){}
+    }
+    meterLoop();
+
+    // Tone extraction (autocorrelation) - same as before
+    function autoCorrelate(float32Array, sampleRate){
+      const SIZE = float32Array.length;
+      let rms=0;
+      for(let i=0;i<SIZE;i++){ const v=float32Array[i]; rms+=v*v; }
+      rms = Math.sqrt(rms / SIZE);
+      if(rms < 0.01) return -1;
+      let r1=0, r2=SIZE-1, thres=0.2;
+      for(let i=0;i<SIZE/2;i++){ if(Math.abs(float32Array[i]) < thres){ r1=i; break; } }
+      for(let i=1;i<SIZE/2;i++){ if(Math.abs(float32Array[SIZE-i]) < thres){ r2=SIZE-i; break; } }
+      const newArr = float32Array.slice(r1, r2);
+      const newSize = newArr.length;
+      const c = new Array(newSize).fill(0);
+      for(let i=0;i<newSize;i++) for(let j=0;j<newSize-i;j++) c[i] += newArr[j] * newArr[j+i];
+      let d = 0; while(c[d] > c[d+1]) d++;
+      let maxVal = -Infinity, maxPos = -1;
+      for(let i=d;i<newSize;i++){ if(c[i] > maxVal){ maxVal = c[i]; maxPos = i; } }
+      let T0 = maxPos;
+      const x1 = c[T0-1], x2 = c[T0], x3 = c[T0+1];
+      const a = (x1 + x3 - 2*x2)/2; const b = (x3 - x1)/2;
+      if(a) T0 = T0 - b/(2*a);
+      return sampleRate / T0;
+    }
+    async function extractToneFromFile(file, targetEl){
+      try{
+        const ab = await file.arrayBuffer();
+        const decoded = await audioCtx.decodeAudioData(ab.slice(0));
+        renderCodesFromBuffer(decoded, targetEl);
+      }catch(e){
+        targetEl.textContent = 'Tone extraction failed or file large.';
+      }
+    }
+    function renderCodesFromBuffer(audioBuffer, targetEl){
+      try{
+        const chan = audioBuffer.getChannelData(0).slice(0, Math.min(audioBuffer.length, audioBuffer.sampleRate * 1.0));
+        const freq = autoCorrelate(chan, audioBuffer.sampleRate);
+        if(freq <= 0){ targetEl.textContent = 'No tone detected'; return; }
+        targetEl.innerHTML = '';
+        for(let i=0;i<10;i++){
+          const el = document.createElement('div'); el.style.display='inline-block'; el.style.marginRight='6px';
+          el.style.padding='6px 8px'; el.style.borderRadius='999px'; el.style.background='rgba(255,255,255,0.03)'; el.textContent = (i+1)+': '+Math.round(freq*(i+1))+'Hz';
+          targetEl.appendChild(el);
+        }
+      }catch(e){ targetEl.textContent = 'Coding error'; }
+    }
+    async function attachFileMeta(file, targetEl){ try{ await extractToneFromFile(file, targetEl); }catch(e){ targetEl.textContent='No tone'; } }
+
+    // recording mix
+    let mediaRecorder = null, recorded = [];
+    recBtn.addEventListener('click', async ()=>{
+      if(mediaRecorder && mediaRecorder.state === 'recording'){ mediaRecorder.stop(); recBtn.textContent = 'Record'; }
+      else {
+        await resumeAudio();
+        recorded = [];
+        mediaRecorder = new MediaRecorder(recorderDestination.stream);
+        mediaRecorder.ondataavailable = e => { if(e.data && e.data.size) recorded.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recorded, {type:'audio/webm'});
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url; downloadLink.textContent = 'Download Mix'; downloadLink.style.pointerEvents='auto';
+        };
+        mediaRecorder.start();
+        recBtn.textContent = 'Stop';
+      }
+    });
+
+    // EQ slider bindings (dB to filter.gain)
+    // Deck A
+    $('highA').addEventListener('input', e=> deckA.high.gain.value = parseFloat(e.target.value));
+    $('midA').addEventListener('input', e=> deckA.mid.gain.value = parseFloat(e.target.value));
+    $('lowA').addEventListener('input', e=> deckA.low.gain.value = parseFloat(e.target.value));
+    // Deck B
+    $('highB').addEventListener('input', e=> deckB.high.gain.value = parseFloat(e.target.value));
+    $('midB').addEventListener('input', e=> deckB.mid.gain.value = parseFloat(e.target.value));
+    $('lowB').addEventListener('input', e=> deckB.low.gain.value = parseFloat(e.target.value));
+
+    // ---------- Sampler implementation (6 pads) ----------
+    // Each pad has either a default synthesized sound or a loaded AudioBuffer
+    const samplerSlots = new Array(6).fill(null); // will hold AudioBuffer or null
+    const padFileLabels = [ $('padFile0'), $('padFile1'), $('padFile2'), $('padFile3'), $('padFile4'), $('padFile5') ];
+    // Default synth generator per pad (kick/snare/clap/hat/bass/fx)
+    function playDefaultPad(slot){
+      const now = audioCtx.currentTime;
+      if(slot === 0){ // kick
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(100, now); o.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+        g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.9, now + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+        o.connect(g); g.connect(masterGain); o.start(now); o.stop(now + 0.7);
+      } else if(slot === 1){ // snare
+        const noise = audioCtx.createBufferSource(); const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.2, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0); for(let i=0;i<data.length;i++) data[i] = (Math.random()*2-1) * Math.exp(-i/2000);
+        noise.buffer = buffer;
+        const g = audioCtx.createGain(); g.gain.setValueAtTime(0.8, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        noise.connect(g); g.connect(masterGain); noise.start(now); noise.stop(now + 0.2);
+      } else if(slot === 2){ // clap
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.14, audioCtx.sampleRate);
+        const d = buffer.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*Math.exp(-i/1000);
+        const src = audioCtx.createBufferSource(); src.buffer = buffer; const g = audioCtx.createGain(); g.gain.setValueAtTime(0.7, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        src.connect(g); g.connect(masterGain); src.start(now);
+      } else if(slot === 3){ // hi-hat
+        for(let i=0;i<3;i++){
+          const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+          o.type = 'square'; o.frequency.setValueAtTime(6000 + i*200, now + i*0.002);
+          g.gain.setValueAtTime(0.08, now + i*0.002); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.05 + i*0.002);
+          o.connect(g); g.connect(masterGain); o.start(now + i*0.002); o.stop(now + 0.06 + i*0.002);
+        }
+      } else if(slot === 4){ // bass stab
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'sawtooth'; o.frequency.setValueAtTime(80, now); g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(0.5, now + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+        o.connect(g); g.connect(masterGain); o.start(now); o.stop(now + 0.6);
+      } else { // fx
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(400 + Math.random()*1500, now); o.frequency.exponentialRampToValueAtTime(50, now + 0.8);
+        g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.35, now + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+        o.connect(g); g.connect(masterGain); o.start(now); o.stop(now + 1.1);
+      }
+    }
+
+    function triggerPad(slot){
+      if(samplerSlots[slot]){
+        // play buffer
+        const src = audioCtx.createBufferSource(); src.buffer = samplerSlots[slot];
+        const gain = audioCtx.createGain(); gain.gain.value = 1.0;
+        src.connect(gain); gain.connect(masterGain);
+        src.start();
+      } else {
+        playDefaultPad(slot);
+      }
+    }
+
+    // attach click listeners to pads and file inputs
+    for(let i=0;i<6;i++){
+      const padEl = $('pad' + i);
+      padEl.addEventListener('click', ()=>{ resumeAudio().then(()=> triggerPad(i)); });
+      const uploader = padEl.querySelector('.padUploader');
+      uploader.addEventListener('change', async (ev)=>{
+        const file = ev.target.files[0]; if(!file) return;
+        padFileLabels[i].textContent = file.name;
+        try{
+          const ab = await file.arrayBuffer();
+          const buf = await audioCtx.decodeAudioData(ab.slice(0));
+          samplerSlots[i] = buf;
+        }catch(e){
+          padFileLabels[i].textContent = 'failed';
+        }
+      });
+    }
+
+    // allow keyboard shortcuts 1-6 for pads
+    window.addEventListener('keydown', (e)=>{
+      if(e.key >= '1' && e.key <= '6'){ const idx = parseInt(e.key) - 1; resumeAudio().then(()=> triggerPad(idx)); }
+    });
+
+    // ---------- Sampler done ----------
+
+    // ---------- three.js background (unchanged visual) ----------
+    (function(){
+      const container = $('three');
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.z = 3;
+      const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+      const geo = new THREE.TorusKnotGeometry(0.7, 0.22, 320, 88);
+      const mat = new THREE.MeshPhysicalMaterial({color:0x7be3ff, emissive:0x041219, metalness:0.9, roughness:0.06, clearcoat:0.3});
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+      const l1 = new THREE.PointLight(0xffffff, 1.2); l1.position.set(5,5,5); scene.add(l1);
+      const l2 = new THREE.PointLight(0xff6bcb,0.9); l2.position.set(-5,-3,3); scene.add(l2);
+      const amb = new THREE.AmbientLight(0x111111); scene.add(amb);
+      function anim(){ requestAnimationFrame(anim); mesh.rotation.x += 0.004; mesh.rotation.y += 0.006; renderer.render(scene, camera); }
+      anim();
+      window.addEventListener('resize', ()=>{ renderer.setSize(container.clientWidth, container.clientHeight); camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); });
+    })();
+
+    // ---------- fire canvas reactive to RMS ----------
+    (function(){
+      const canvas = $('fire'); const g = canvas.getContext('2d');
+      function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
+      window.addEventListener('resize', resize); resize();
+      const particles = [];
+      function emit(intensity){
+        const count = Math.round(2 + intensity*40);
+        for(let i=0;i<count;i++){
+          particles.push({
+            x: Math.random()*canvas.width,
+            y: canvas.height,
+            vx: (Math.random()-0.5)*1.2,
+            vy: -1 - Math.random()*3 - intensity*6,
+            life: 30 + Math.random()*60,
+            size: 6 + Math.random()*10,
+            alpha: 1
+          });
+        }
+      }
+      function loop(){
+        requestAnimationFrame(loop);
+        g.clearRect(0,0,canvas.width,canvas.height);
+        const rA = computeRMSFromTimeDomain(deckA.analyser);
+        const rB = computeRMSFromTimeDomain(deckB.analyser);
+        const intensity = Math.min(1, (rA + rB) * 2);
+        if((!audioElA.paused || !audioElB.paused) && Math.random() < 0.6) emit(intensity);
+        for(let i=particles.length-1;i>=0;i--){
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.life -= 1; p.alpha -= 0.02;
+          const grd = g.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*2);
+          grd.addColorStop(0, 'rgba(255,240,140,'+p.alpha+')');
+          grd.addColorStop(0.4, 'rgba(255,120,50,'+(p.alpha*0.9)+')');
+          grd.addColorStop(1, 'rgba(10,10,10,0)');
+          g.fillStyle = grd; g.fillRect(p.x-p.size,p.y-p.size,p.size*2,p.size*2);
+          if(p.life<=0 || p.alpha<=0) particles.splice(i,1);
+        }
+      }
+      loop();
+    })();
+
+  })(); // end djCore
+
+  </script>
+</body>
+</html>
